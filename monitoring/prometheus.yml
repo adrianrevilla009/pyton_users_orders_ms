@@ -1,0 +1,41 @@
+# =============================================================================
+# CONFIGURACIÓN DE PROMETHEUS
+# =============================================================================
+# Prometheus scraping — recoge métricas de la aplicación cada 15s
+
+global:
+  scrape_interval: 15s       # Con qué frecuencia recoger métricas
+  evaluation_interval: 15s   # Con qué frecuencia evaluar alertas
+
+# Reglas de alertas
+rule_files:
+  - "alerts.yml"
+
+# Targets de scraping
+scrape_configs:
+  # La propia app Django (expone /metrics via django-prometheus)
+  - job_name: 'django-app'
+    static_configs:
+      - targets: ['app:8000']
+    metrics_path: '/metrics'
+
+  # PostgreSQL (via postgres_exporter)
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis (via redis_exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Kafka (via kafka_exporter)
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+# Alertmanager para enviar alertas
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']

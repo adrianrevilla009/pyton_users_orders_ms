@@ -1,0 +1,45 @@
+# =============================================================================
+# REGLAS DE ALERTAS DE PROMETHEUS
+# =============================================================================
+groups:
+  - name: api_alerts
+    rules:
+      # Alta tasa de errores HTTP 5xx
+      - alert: HighErrorRate
+        expr: sum(rate(django_http_responses_total_by_status_view_method_total{status=~"5.."}[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alta tasa de errores 5xx"
+          description: "Más del 10% de requests están fallando con 5xx"
+
+      # Latencia alta
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, sum(rate(django_http_requests_latency_seconds_by_view_method_bucket[5m])) by (view, le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latencia alta en API"
+          description: "El percentil 95 de latencia supera 2 segundos"
+
+  - name: infrastructure_alerts
+    rules:
+      # PostgreSQL caído
+      - alert: PostgresqlDown
+        expr: up{job="postgresql"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL no responde"
+
+      # Redis caído
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis no responde"

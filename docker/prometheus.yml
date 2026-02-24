@@ -1,0 +1,9 @@
+# Prometheus config: scraping de metricas de Django
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'django-app'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: '/metrics'
